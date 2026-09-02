@@ -39,12 +39,12 @@ npm run test:all        # 128 self-checks — no network, no API key
 
 ```mermaid
 flowchart TB
-    subgraph client["🖥️  Browser — vanilla JS, no framework"]
+    subgraph client["Browser — vanilla JS, no framework"]
         UI["SPA · hash routing"]
         CH["charts.js · inline SVG"]
     end
 
-    subgraph server["⚙️  Node + Express"]
+    subgraph server["Node + Express"]
         API["api.js — routes · auth guard · shaping"]
 
         subgraph domain["Domain modules"]
@@ -118,11 +118,11 @@ Payment apps compete on *sending* money. The expensive part for a bank is everyt
 
 | | |
 | :-- | :-- |
-| 🛡️ **Safe Send** | Escrow for paying strangers. Money leaves your balance but is **held by the bank** — the seller sees it's committed but can't touch it. You release it on delivery; if you never do, it refunds itself. |
-| 📡 **Money Radar** | Finds recurring payments, shows what each costs **per year**, and flags a **price rise** against what it *used* to cost — so it stays visible after the new price has been billed a few times. |
-| 🔁 **Autopay with a real ceiling** | A merchant that raises its price **above your approved limit** is refused, not charged. An unfundable debit is skipped, never forced, and the cycle doesn't advance. |
-| ⚡ **Self-resolving support** | A duplicate charge refunds on the spot; an unconfirmed payment auto-reverses when the settlement window lapses. **Only fraud reaches a human.** |
-| 🤖 **Abhi** | AI customer care grounded in *your* account. Uses Claude when a key is configured, a deterministic offline engine when not. |
+| **Safe Send** | Escrow for paying strangers. Money leaves your balance but is **held by the bank** — the seller sees it's committed but can't touch it. You release it on delivery; if you never do, it refunds itself. |
+| **Money Radar** | Finds recurring payments, shows what each costs **per year**, and flags a **price rise** against what it *used* to cost — so it stays visible after the new price has been billed a few times. |
+| **Autopay with a real ceiling** | A merchant that raises its price **above your approved limit** is refused, not charged. An unfundable debit is skipped, never forced, and the cycle doesn't advance. |
+| **Self-resolving support** | A duplicate charge refunds on the spot; an unconfirmed payment auto-reverses when the settlement window lapses. **Only fraud reaches a human.** |
+| **Abhi** | AI customer care grounded in *your* account. Uses Claude when a key is configured, a deterministic offline engine when not. |
 
 ---
 
