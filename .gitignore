@@ -1,0 +1,11 @@
+node_modules/
+*.db
+.session-secret
+.DS_Store
+
+# Local environment
+.env
+.env.local
+
+# Logs
+*.log

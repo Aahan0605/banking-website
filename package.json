@@ -1,0 +1,19 @@
+{
+  "name": "abpay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AB Pay \u2014 Indian net banking and UPI demo application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js",
+    "test:assistant": "node test-assistant.js",
+    "test:all": "node test.js && node test-assistant.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.123.0",
+    "express": "^4.21.2",
+    "jsqr": "^1.4.0",
+    "qrcode": "^1.5.4"
+  }
+}
