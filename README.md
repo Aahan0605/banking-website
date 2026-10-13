@@ -171,6 +171,7 @@ The suite covers token forgery, balance conservation, overdraft refusal, FD/RD i
 │   ├── catalog.js         Operator plans and BBPS billers
 │   └── payee.js           Real-world UPI address (environment only)
 ├── public/                Client app — index.html · app.js · charts.js · styles.css
+├── practicals/            OST lab practicals 6–10 — see practicals/README.md
 ├── test.js                117 checks — money, servicing, security
 └── test-assistant.js      11 checks — AI integration, stubbed SDK
 ```
