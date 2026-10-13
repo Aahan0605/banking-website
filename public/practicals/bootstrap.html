@@ -1,0 +1,287 @@
+<!doctype html>
+<!--
+  Practical 6 — Responsive layout with Bootstrap 5.
+  An AB Pay landing + account overview page built only from Bootstrap's grid,
+  utilities and components, re-themed to AB Pay's navy/red through Bootstrap's
+  CSS variables. Served at /practicals/bootstrap.html.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AB Pay — Bootstrap Layout</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    /* Customisation: AB Pay's brand colours and font fed into Bootstrap's variables. */
+    :root {
+      --bs-primary: #003874;
+      --bs-primary-rgb: 0, 56, 116;
+      --bs-danger: #e4262c;
+      --bs-danger-rgb: 228, 38, 44;
+      --bs-body-font-family: "Inter", system-ui, sans-serif;
+      --bs-body-bg: #f4f6f9;
+      --bs-border-radius: 12px;
+      --bs-link-color-rgb: 0, 56, 116;
+    }
+    .btn-primary { --bs-btn-bg: #003874; --bs-btn-border-color: #003874; --bs-btn-hover-bg: #002a56; --bs-btn-hover-border-color: #002a56; }
+    .btn-danger  { --bs-btn-bg: #e4262c; --bs-btn-border-color: #e4262c; --bs-btn-hover-bg: #c51c22; --bs-btn-hover-border-color: #c51c22; }
+    .hero { background: linear-gradient(135deg, #002a56, #003874 60%, #1466b8); }
+    .feature-icon { width: 3rem; height: 3rem; }
+    .carousel-item { min-height: 220px; }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar: collapses into a hamburger below the lg breakpoint. -->
+  <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top shadow-sm">
+    <div class="container">
+      <a class="navbar-brand fw-bold text-primary" href="#"><span class="badge bg-primary me-1">AB</span>Pay</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+              aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link active" aria-current="page" href="#overview">Overview</a></li>
+          <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Products</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#">Savings Account</a></li>
+              <li><a class="dropdown-item" href="#">Fixed Deposits</a></li>
+              <li><a class="dropdown-item" href="#">RuPay Cards</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">UPI AutoPay</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
+        </ul>
+        <div class="d-flex gap-2">
+          <a href="/" class="btn btn-outline-primary">Log in</a>
+          <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#openAccount">Open account</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero: text and image stack on phones, sit side by side from md up. -->
+  <header class="hero text-white py-5">
+    <div class="container py-lg-4">
+      <div class="row align-items-center g-4">
+        <div class="col-md-7">
+          <h1 class="display-5 fw-bold">Banking that fits in your pocket.</h1>
+          <p class="lead opacity-75">UPI, IMPS, NEFT, deposits and cards — one AB Pay account, zero paperwork.</p>
+          <button class="btn btn-danger btn-lg me-2" data-bs-toggle="modal" data-bs-target="#openAccount">Get started</button>
+          <a href="#features" class="btn btn-outline-light btn-lg">Explore</a>
+        </div>
+        <div class="col-md-5">
+          <div class="card text-dark shadow-lg border-0">
+            <div class="card-body">
+              <small class="text-secondary">Savings · XXXX 4521</small>
+              <h2 class="fw-bold my-2">₹1,84,520.50</h2>
+              <div class="d-flex justify-content-between small mb-1"><span>Monthly limit used</span><span>38%</span></div>
+              <div class="progress" role="progressbar" aria-label="Monthly limit used" aria-valuenow="38" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar bg-danger" style="width: 38%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container my-5">
+
+    <!-- Account overview: 1 column on phones, 2 on tablets, 4 on desktops. -->
+    <section id="overview" class="mb-5">
+      <h2 class="h4 fw-bold mb-3">Account overview</h2>
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3">
+        <div class="col"><div class="card h-100 border-0 shadow-sm"><div class="card-body">
+          <small class="text-secondary">Balance</small><h3 class="h5 fw-bold mb-0">₹1,84,520</h3></div></div></div>
+        <div class="col"><div class="card h-100 border-0 shadow-sm"><div class="card-body">
+          <small class="text-secondary">Fixed deposits</small><h3 class="h5 fw-bold mb-0">₹2,00,000 <span class="badge text-bg-success">7.1%</span></h3></div></div></div>
+        <div class="col"><div class="card h-100 border-0 shadow-sm"><div class="card-body">
+          <small class="text-secondary">Safe Send held</small><h3 class="h5 fw-bold mb-0">₹4,500 <span class="badge text-bg-warning">1</span></h3></div></div></div>
+        <div class="col"><div class="card h-100 border-0 shadow-sm"><div class="card-body">
+          <small class="text-secondary">Bills due</small><h3 class="h5 fw-bold mb-0">2 <span class="badge text-bg-danger">this week</span></h3></div></div></div>
+      </div>
+
+      <div class="row g-3 mt-1">
+        <!-- Recent transactions: table scrolls sideways on small screens instead of breaking the page. -->
+        <div class="col-lg-8">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">Recent transactions</div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light"><tr><th>Date</th><th>Description</th><th>Category</th><th class="text-end">Amount</th></tr></thead>
+                <tbody>
+                  <tr><td>01 Sep</td><td>BigBasket</td><td><span class="badge rounded-pill text-bg-light">Groceries</span></td><td class="text-end text-danger">−₹1,280.00</td></tr>
+                  <tr><td>31 Aug</td><td>Uber India</td><td><span class="badge rounded-pill text-bg-light">Transport</span></td><td class="text-end text-danger">−₹450.00</td></tr>
+                  <tr><td>30 Aug</td><td>Infosys Ltd — Salary</td><td><span class="badge rounded-pill text-bg-light">Income</span></td><td class="text-end text-success">+₹85,000.00</td></tr>
+                  <tr><td>28 Aug</td><td>Airtel Recharge</td><td><span class="badge rounded-pill text-bg-light">Recharge</span></td><td class="text-end text-danger">−₹299.00</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- Quick actions: list group with a toast on click. -->
+        <div class="col-lg-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">Quick actions</div>
+            <div class="list-group list-group-flush">
+              <button class="list-group-item list-group-item-action js-action"><i class="bi bi-send me-2"></i>Send money</button>
+              <button class="list-group-item list-group-item-action js-action"><i class="bi bi-qr-code-scan me-2"></i>Scan &amp; pay</button>
+              <button class="list-group-item list-group-item-action js-action"><i class="bi bi-receipt me-2"></i>Pay a bill</button>
+              <button class="list-group-item list-group-item-action js-action"><i class="bi bi-piggy-bank me-2"></i>Open a deposit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features: icon cards, 3 across on desktop. -->
+    <section id="features" class="mb-5">
+      <h2 class="h4 fw-bold mb-3">Why AB Pay</h2>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-3 fs-4 mb-2"><i class="bi bi-lightning-charge"></i></div>
+          <h3 class="h6 fw-bold">Instant UPI</h3><p class="text-secondary">Pay any UPI ID or QR in seconds, with PIN protection on every payment.</p>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-danger text-white rounded-3 fs-4 mb-2"><i class="bi bi-shield-lock"></i></div>
+          <h3 class="h6 fw-bold">Safe Send</h3><p class="text-secondary">Escrowed payments that only release when you say the goods arrived.</p>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-success text-white rounded-3 fs-4 mb-2"><i class="bi bi-graph-up-arrow"></i></div>
+          <h3 class="h6 fw-bold">Smart insights</h3><p class="text-secondary">See where your money goes, by category, over a rolling 30 days.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Offers carousel. -->
+    <section class="mb-5">
+      <div id="offers" class="carousel slide rounded-3 overflow-hidden shadow-sm" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+          <button type="button" data-bs-target="#offers" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Offer 1"></button>
+          <button type="button" data-bs-target="#offers" data-bs-slide-to="1" aria-label="Offer 2"></button>
+          <button type="button" data-bs-target="#offers" data-bs-slide-to="2" aria-label="Offer 3"></button>
+        </div>
+        <div class="carousel-inner text-white text-center">
+          <div class="carousel-item active bg-primary"><div class="p-5"><h3>7.1% p.a. on Fixed Deposits</h3><p>Lock in for 12 months, withdraw anytime.</p></div></div>
+          <div class="carousel-item bg-danger"><div class="p-5"><h3>Zero-fee RuPay debit card</h3><p>Free for life, with tap-to-pay controls.</p></div></div>
+          <div class="carousel-item bg-success"><div class="p-5"><h3>UPI AutoPay</h3><p>Never miss a subscription or EMI again.</p></div></div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#offers" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span><span class="visually-hidden">Previous</span></button>
+        <button class="carousel-control-next" type="button" data-bs-target="#offers" data-bs-slide="next"><span class="carousel-control-next-icon"></span><span class="visually-hidden">Next</span></button>
+      </div>
+    </section>
+
+    <!-- FAQ accordion. -->
+    <section id="faq">
+      <h2 class="h4 fw-bold mb-3">Frequently asked questions</h2>
+      <div class="accordion" id="faqList">
+        <div class="accordion-item">
+          <h3 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#q1">How do I set my UPI PIN?</button></h3>
+          <div id="q1" class="accordion-collapse collapse show" data-bs-parent="#faqList"><div class="accordion-body">Go to UPI → Set PIN and enter a 4- or 6-digit PIN. You'll need it for every UPI payment.</div></div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q2">What is the daily transfer limit?</button></h3>
+          <div id="q2" class="accordion-collapse collapse" data-bs-parent="#faqList"><div class="accordion-body">Your monthly limit is shown on the dashboard; you can lower it any time in Security settings.</div></div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q3">Can I close a fixed deposit early?</button></h3>
+          <div id="q3" class="accordion-collapse collapse" data-bs-parent="#faqList"><div class="accordion-body">Yes. Premature closure pays interest at the rate for the time actually held, minus a 0.5% penalty.</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-primary text-white-50 py-4">
+    <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
+      <span>© AB Pay — demo application</span>
+      <span>Built with Bootstrap 5.3</span>
+    </div>
+  </footer>
+
+  <!-- Open account modal with Bootstrap form validation. -->
+  <div class="modal fade" id="openAccount" tabindex="-1" aria-labelledby="openAccountTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content needs-validation" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="openAccountTitle">Open an AB Pay account</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label for="fName" class="form-label">First name</label>
+              <input id="fName" class="form-control" required>
+              <div class="invalid-feedback">Enter your first name.</div>
+            </div>
+            <div class="col-sm-6">
+              <label for="lName" class="form-label">Surname</label>
+              <input id="lName" class="form-control" required>
+              <div class="invalid-feedback">Enter your surname.</div>
+            </div>
+            <div class="col-12">
+              <label for="mobile" class="form-label">Mobile</label>
+              <div class="input-group has-validation">
+                <span class="input-group-text">+91</span>
+                <input id="mobile" class="form-control" required pattern="[6-9][0-9]{9}" inputmode="numeric">
+                <div class="invalid-feedback">Enter a 10-digit Indian mobile number.</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <label for="accType" class="form-label">Account type</label>
+              <select id="accType" class="form-select" required>
+                <option value="">Choose…</option><option>Savings</option><option>Current</option>
+              </select>
+              <div class="invalid-feedback">Choose an account type.</div>
+            </div>
+            <div class="col-12 form-check ms-1">
+              <input class="form-check-input" type="checkbox" id="agree" required>
+              <label class="form-check-label" for="agree">I agree to the terms</label>
+              <div class="invalid-feedback">You must agree before continuing.</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast used by quick actions and the form. -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="notice" class="toast text-bg-primary border-0" role="status" aria-live="polite" aria-atomic="true">
+      <div class="d-flex"><div class="toast-body" id="noticeText"></div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const toast = bootstrap.Toast.getOrCreateInstance(document.getElementById("notice"));
+    const notify = text => { document.getElementById("noticeText").textContent = text; toast.show(); };
+
+    document.querySelectorAll(".js-action").forEach(btn =>
+      btn.addEventListener("click", () => notify(btn.textContent.trim() + " — log in to continue.")));
+
+    // Bootstrap's standard validation pattern: block submit until every field is valid.
+    const form = document.querySelector(".needs-validation");
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      form.classList.add("was-validated");
+      if (!form.checkValidity()) return;
+      bootstrap.Modal.getInstance("#openAccount").hide();
+      notify("Thanks " + form.fName.value + "! This demo doesn't create real accounts.");
+      form.reset();
+      form.classList.remove("was-validated");
+    });
+  </script>
+</body>
+</html>
