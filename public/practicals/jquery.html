@@ -1,0 +1,236 @@
+<!doctype html>
+<!--
+  Practical 7 — DOM manipulation with jQuery.
+  Signs in to the real AB Pay API, then builds and reshapes the statement
+  entirely through jQuery: selecting, creating, inserting, filtering, sorting,
+  class/attribute/CSS changes, event handling and effects.
+  Served at /practicals/jquery.html (start the server with `npm start`).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AB Pay — jQuery Statement</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --navy: #003874; --red: #e4262c; --green: #1a8a5a; --bg: #f4f6f9; --border: #e2e7ee; --muted: #6b7c93; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: #12263f; }
+    header { background: var(--navy); color: #fff; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+    main { max-width: 960px; margin: 24px auto; padding: 0 16px; }
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    input, select, button { font: inherit; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); }
+    button { background: var(--navy); color: #fff; border: 0; cursor: pointer; }
+    button.ghost { background: transparent; color: #fff; border: 1px solid #fff; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .toolbar input { flex: 1 1 200px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+    th[data-sort] { cursor: pointer; user-select: none; }
+    th.asc::after { content: " ▲"; } th.desc::after { content: " ▼"; }
+    td.amount { text-align: right; font-variant-numeric: tabular-nums; }
+    tr.in td.amount { color: var(--green); } tr.out td.amount { color: var(--red); }
+    tr.big { background: #fff7e6; }
+    tr.selected { outline: 2px solid var(--navy); }
+    tr.details td { background: #f7f9fc; color: var(--muted); white-space: normal; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .stat small { color: var(--muted); display: block; }
+    .stat strong { font-size: 1.25rem; }
+    .error { color: var(--red); }
+    .muted { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>AB Pay · jQuery statement</strong>
+    <button id="logout" class="ghost" hidden>Log out</button>
+  </header>
+
+  <main>
+    <!-- Login (shown when there is no saved session). -->
+    <form id="login" class="card" hidden>
+      <h2>Sign in</h2>
+      <p class="muted">Demo account: demo@abpay.in / demo1234</p>
+      <div class="toolbar">
+        <input name="email" type="email" placeholder="Email" value="demo@abpay.in" required>
+        <input name="password" type="password" placeholder="Password" required>
+        <button type="submit">Sign in</button>
+      </div>
+      <p id="loginError" class="error"></p>
+    </form>
+
+    <section id="statement" hidden>
+      <div class="card stats">
+        <div class="stat"><small>Customer</small><strong id="who"></strong></div>
+        <div class="stat"><small>Balance</small><strong id="balance"></strong></div>
+        <div class="stat"><small>Shown money in</small><strong id="totalIn"></strong></div>
+        <div class="stat"><small>Shown money out</small><strong id="totalOut"></strong></div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <input id="search" placeholder="Search description or method…" aria-label="Search">
+          <select id="category" aria-label="Category"><option value="">All categories</option></select>
+          <select id="direction" aria-label="Direction">
+            <option value="">In &amp; out</option><option value="in">Money in</option><option value="out">Money out</option>
+          </select>
+          <button id="highlight" type="button">Highlight ≥ ₹1,000</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th data-sort="date">Date</th><th data-sort="name">Description</th>
+              <th>Method</th><th>Category</th><th data-sort="amount" class="amount">Amount</th>
+            </tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <p class="muted"><span id="shown">0</span> of <span id="total">0</span> transactions · click a row for details</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script>
+  $(function () {
+    // The main app keeps its session under this key, so a user already logged in skips the form.
+    const TOKEN_KEY = "abpay_token";
+    const inr = n => "₹" + Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2 });
+    let transactions = [];
+
+    const api = (method, url, data) => $.ajax({
+      method, url: "/api" + url,
+      contentType: "application/json",
+      data: data ? JSON.stringify(data) : undefined,
+      headers: localStorage.getItem(TOKEN_KEY) ? { Authorization: "Bearer " + localStorage.getItem(TOKEN_KEY) } : {}
+    });
+
+    function showLogin() {
+      $("#statement, #logout").attr("hidden", true);
+      $("#login").removeAttr("hidden").hide().fadeIn(200);
+    }
+
+    function load() {
+      $.when(api("GET", "/dashboard"), api("GET", "/transactions?limit=200"))
+        .done(([dash], [list]) => {
+          transactions = list.transactions;
+          $("#who").text(dash.user.name + " " + dash.user.surname);
+          $("#balance").text(inr(dash.account.balance));
+          $("#total").text(list.total);
+
+          // Build the category dropdown from the data itself.
+          const cats = [...new Set(transactions.map(t => t.category))].sort();
+          $("#category").find("option:not(:first)").remove();
+          $.each(cats, (_, c) => $("<option>").val(c).text(c).appendTo("#category"));
+
+          render(transactions);
+          $("#login").attr("hidden", true);
+          $("#statement, #logout").removeAttr("hidden");
+          $("#statement").hide().fadeIn(300);
+        })
+        .fail(xhr => {
+          if (xhr.status === 401) { localStorage.removeItem(TOKEN_KEY); showLogin(); }
+        });
+    }
+
+    // Create one <tr> per transaction. .text() is used for every value so
+    // nothing from the server is ever interpreted as HTML.
+    function render(list) {
+      const $body = $("#rows").empty();
+      $.each(list, (_, t) => {
+        $("<tr>")
+          .addClass(t.direction)
+          .attr({ "data-id": t.id, "data-date": t.date, "data-amount": t.amount, "data-name": t.counterpartyName || "" })
+          .append($("<td>").text(new Date(t.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })))
+          .append($("<td>").text(t.counterpartyName || t.description || "—"))
+          .append($("<td>").text(t.method))
+          .append($("<td>").text(t.category))
+          .append($("<td>").addClass("amount").text((t.direction === "in" ? "+" : "−") + inr(t.amount)))
+          .data("tx", t)
+          .appendTo($body);
+      });
+      applyFilters();
+    }
+
+    // Filtering hides rows instead of rebuilding them; totals follow what is visible.
+    function applyFilters() {
+      const q = $("#search").val().toLowerCase();
+      const cat = $("#category").val();
+      const dir = $("#direction").val();
+      let sumIn = 0, sumOut = 0;
+
+      $("#rows tr.details").remove();
+      $("#rows tr").each(function () {
+        const t = $(this).data("tx");
+        const match = (!cat || t.category === cat) && (!dir || t.direction === dir) &&
+          $(this).text().toLowerCase().includes(q);
+        $(this).toggle(match);
+        if (match) t.direction === "in" ? (sumIn += t.amount) : (sumOut += t.amount);
+      });
+
+      $("#shown").text($("#rows tr:visible").length);
+      $("#totalIn").text(inr(sumIn));
+      $("#totalOut").text(inr(sumOut));
+    }
+
+    $("#search").on("input", applyFilters);
+    $("#category, #direction").on("change", applyFilters);
+
+    // Sorting: detach the rows, sort them, and re-append them in the new order.
+    $("th[data-sort]").on("click", function () {
+      const key = $(this).data("sort");
+      const asc = !$(this).hasClass("asc");
+      $("th[data-sort]").removeClass("asc desc");
+      $(this).addClass(asc ? "asc" : "desc");
+
+      $("#rows tr.details").remove();
+      const rows = $("#rows tr").detach().get().sort((a, b) => {
+        const x = $(a).attr("data-" + key), y = $(b).attr("data-" + key);
+        const cmp = key === "amount" ? x - y : x.localeCompare(y);
+        return asc ? cmp : -cmp;
+      });
+      $("#rows").append(rows);
+    });
+
+    // Toggle a highlight class on large transactions.
+    $("#highlight").on("click", function () {
+      $("#rows tr").filter((_, tr) => Number($(tr).attr("data-amount")) >= 1000).toggleClass("big");
+      $(this).text($(this).text().startsWith("Highlight") ? "Clear highlight" : "Highlight ≥ ₹1,000");
+    });
+
+    // Event delegation: one handler on <tbody> for every (future) row.
+    $("#rows").on("click", "tr:not(.details)", function () {
+      const $row = $(this);
+      const open = $row.next().hasClass("details");
+      $("#rows tr.details").remove();
+      $("#rows tr").removeClass("selected");
+      if (open) return;
+
+      const t = $row.data("tx");
+      $row.addClass("selected");
+      const $cell = $("<td colspan='5'>").text(
+        `Reference ${t.reference || "—"} · ${t.description || ""} · balance after ${inr(t.balanceAfter)}`
+      );
+      $("<tr class='details'>").append($cell).insertAfter($row).children().hide().slideDown(150);
+    });
+
+    $("#login").on("submit", function (e) {
+      e.preventDefault();
+      $("#loginError").text("");
+      api("POST", "/login", { email: this.email.value, password: this.password.value })
+        .done(s => {
+          if (s.otpRequired) return $("#loginError").text("This account has two-factor sign-in on; use the main app.");
+          localStorage.setItem(TOKEN_KEY, s.token);
+          load();
+        })
+        .fail(xhr => $("#loginError").text(xhr.responseJSON?.message || "Sign-in failed."));
+    });
+
+    $("#logout").on("click", () => { localStorage.removeItem(TOKEN_KEY); $("#rows").empty(); showLogin(); });
+
+    localStorage.getItem(TOKEN_KEY) ? load() : showLogin();
+  });
+  </script>
+</body>
+</html>
