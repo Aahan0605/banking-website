@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Tests · Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # node:sqlite is built in from Node 22, which is the floor for this app.
+        node: ['22.x', '24.x']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Syntax check every source file
+        run: |
+          for file in server.js src/*.js public/app.js public/charts.js; do
+            node --check "$file"
+          done
+
+      - name: Money, servicing and security checks
+        run: npm test
+
+      - name: AI integration checks
+        # The SDK is stubbed, so this needs no API key and costs nothing.
+        run: npm run test:assistant
+
+      - name: Boot the server and probe it
+        run: |
+          npm start &
+          for _ in $(seq 1 30); do
+            curl -sf localhost:3000/api/catalog >/dev/null && break
+            sleep 1
+          done
+
+          # The app must serve its pages and refuse unauthenticated access.
+          curl -sf localhost:3000/ >/dev/null
+          test "$(curl -s -o /dev/null -w '%{http_code}' localhost:3000/api/dashboard)" = "401"
+          echo "server responds and guards private routes"
+
+  secrets:
+    name: No secrets committed
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for credentials and personal data
+        run: |
+          # A UPI ID is usually a phone number, so it must stay in the
+          # environment and never reach the repository.
+          # Strip comment lines first: an example in documentation is not a
+          # committed phone number.
+          if grep -rEn "[6-9][0-9]{9}@[a-z]+" --include='*.js' src/ public/ \
+               | grep -vE ":\s*(\*|//|#)"; then
+            echo "::error::A real UPI ID appears in the source. Use RECEIVE_UPI_ID."
+            exit 1
+          fi
+
+          if grep -rEn "sk-ant-[A-Za-z0-9_-]{10,}|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY" \
+               --include='*.js' --include='*.json' --include='*.md' .; then
+            echo "::error::A credential appears to be committed."
+            exit 1
+          fi
+
+          for path in .session-secret abpay.db node_modules .env; do
+            if git ls-files --error-unmatch "$path" >/dev/null 2>&1; then
+              echo "::error::$path is tracked and must not be."
+              exit 1
+            fi
+          done
+
+          echo "no secrets or personal data found"
